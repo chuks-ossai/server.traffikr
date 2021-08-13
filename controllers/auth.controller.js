@@ -1,46 +1,63 @@
-const AWS = require('aws-sdk')
+const AWS = require("aws-sdk");
+const jwt = require("jsonwebtoken");
+const { registerEmailTemplate } = require("../helpers/email-template");
+const User = require("../models/user");
 
 AWS.config.update({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET,
-    region: process.env.AWS_REGION
-})
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET,
+  region: process.env.AWS_REGION,
+});
 
-const ses = new AWS.SES({apiVersion: '2021-08-12'})
+const ses = new AWS.SES({ apiVersion: "2021-08-12" });
 
 exports.registerController = (req, res) => {
-
-    const params = {
-        Source: process.env.EMAIL_FROM,
-        Destination: {
-            ToAddresses: [req.body.emailAddress]
-        },
-        ReplyToAddresses: [process.env.EMAIL_TO],
-        Message: {
-            Body: {
-                Html: {
-                    Charset: 'UTF-8',
-                    Data: `<html><body><h1>Hello ${req.body.fullName}</h1><div><p>Welcome to traffikr.io</p><p>Please click the link below to activate your account and complete your registration.</p></div></body></html>`
-                }
-            },
-            Subject: {
-                Charset: 'UTF-8',
-                Data: 'Complete Your Registration'
-            }
-        }
+  User.findOne({ emailAddress: req.body.emailAddress }).exec((err, user) => {
+    if (user) {
+      return res.status(200).json({
+        Success: false,
+        ErrorMassage: "User with the email already exist",
+        Results: [],
+      });
     }
 
-    const sendEmail = ses.sendEmail(params).promise()
+    const token = jwt.sign(
+      {
+        exp: Math.floor(Date.now() / 1000) + 60 * 60,
+        data: {
+          fullName: req.body.fulName,
+          emailAddress: req.body.emailAddress,
+        },
+      },
+      process.env.JWT_ACCOUNT_ACTIVATION
+    );
 
-    sendEmail.then((data) => {
-        console.log('email sent with data:', data)
+    const params = registerEmailTemplate(
+      req.body.fullName,
+      req.body.emailAddress,
+      token
+    );
+
+    const sendEmail = ses.sendEmail(params).promise();
+
+    sendEmail
+      .then((data) => {
         res.json({
-            data
-        })
-    }).catch(err => {
-        console.log('Unable to send email: ', err)
+          Success: true,
+          ErrorMessage: null,
+          Results: [
+            {
+              message: `Email has been sent to ${req.body.emailAddress}, Follow the instructions to complete your registration`,
+            },
+          ],
+        });
+      })
+      .catch((err) => {
         res.json({
-            data: error
-        })
-    })
-}
+          Success: false,
+          ErrorMessage: "Unable to verify the email used. Please try again",
+          Results: null,
+        });
+      });
+  });
+};
