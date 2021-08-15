@@ -25,7 +25,7 @@ exports.registerController = (req, res) => {
       {
         exp: Math.floor(Date.now() / 1000) + 60 * 60,
         data: {
-          fullName: req.body.fulName,
+          fullName: req.body.fullName,
           emailAddress: req.body.emailAddress,
         },
       },
