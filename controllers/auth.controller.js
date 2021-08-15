@@ -104,3 +104,40 @@ exports.activateAccountController = (req, res) => {
     }
   );
 };
+
+exports.loginController = (req, res) => {
+  User.findOne({ emailAddress: req.body.emailAddress }).exec((err, user) => {
+    if (err || !user) {
+      return res.status(200).json({
+        Success: false,
+        ErrorMessage: "Invalid Email or password",
+        Results: [],
+      });
+    }
+
+    if (!user.authenticate(req.body.password)) {
+      return res.status(200).json({
+        Success: false,
+        ErrorMessage: "Invalid Email or password",
+        Results: [],
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        exp: Math.floor(Date.now() / 1000) + 60 * 60,
+        data: {
+          emailAddress: user.emailAddress,
+          _id: user._id,
+        },
+      },
+      process.env.JWT_SECRET
+    );
+
+    res.status(200).json({
+      Success: true,
+      ErrorMessage: null,
+      Results: [{ message: "Login successful", user, token }],
+    });
+  });
+};
