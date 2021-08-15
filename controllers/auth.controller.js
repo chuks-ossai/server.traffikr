@@ -27,6 +27,8 @@ exports.registerController = (req, res) => {
         data: {
           fullName: req.body.fullName,
           emailAddress: req.body.emailAddress,
+          password: req.body.password,
+          username: req.body.username,
         },
       },
       process.env.JWT_ACCOUNT_ACTIVATION
@@ -60,4 +62,45 @@ exports.registerController = (req, res) => {
         });
       });
   });
+};
+
+exports.activateAccountController = (req, res) => {
+  const { token } = req.body;
+
+  jwt.verify(
+    token,
+    process.env.JWT_ACCOUNT_ACTIVATION,
+    function (err, decoded) {
+      if (err) {
+        return res.status(200).json({
+          Success: false,
+          ErrorMessage:
+            "The activation link has expired. Please try and register again",
+          Results: null,
+        });
+      }
+
+      const { data } = decoded;
+
+      const newUser = new User({ ...data });
+      newUser.save((err, savedUser) => {
+        if (err) {
+          console.log(err);
+          return res.status(200).json({
+            Results: null,
+            Success: false,
+            ErrorMessage: "Error creating user in database. Try again later",
+          });
+        }
+        console.log(savedUser);
+        return res.status(200).json({
+          Results: [
+            { message: "Account activated successfully. You can now login" },
+          ],
+          Success: true,
+          ErrorMessage: null,
+        });
+      });
+    }
+  );
 };
