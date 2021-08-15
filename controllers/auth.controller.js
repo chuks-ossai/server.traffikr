@@ -1,5 +1,6 @@
 const AWS = require("aws-sdk");
 const jwt = require("jsonwebtoken");
+const expressJwt = require("express-jwt");
 const { registerEmailTemplate } = require("../helpers/email-template");
 const User = require("../models/user");
 
@@ -139,5 +140,52 @@ exports.loginController = (req, res) => {
       ErrorMessage: null,
       Results: [{ message: "Login successful", user, token }],
     });
+  });
+};
+
+exports.validateToken = expressJwt({
+  secret: process.env.JWT_SECRET,
+  algorithms: ["HS256"],
+});
+
+exports.authMiddleware = (req, res, next) => {
+  const authUserId = req.user._id;
+
+  User.findOne({ _id: authUserId }).exec((err, user) => {
+    if (err || !user) {
+      return res.status(200).json({
+        Success: false,
+        ErrorMessage: "User not found",
+        Results: null,
+      });
+    }
+
+    req.profile = user;
+    next();
+  });
+};
+
+exports.adminMiddleware = (req, res, next) => {
+  const authUserId = req.user._id;
+
+  User.findOne({ _id: authUserId }).exec((err, user) => {
+    if (err || !user) {
+      return res.status(200).json({
+        Success: false,
+        ErrorMessage: "User not found",
+        Results: null,
+      });
+    }
+
+    if (user.role !== "admin") {
+      return res.status(401).json({
+        Success: false,
+        ErrorMessage: "You are not authorized to access admin resource.",
+        Results: null,
+      });
+    }
+
+    req.profile = user;
+    next();
   });
 };
