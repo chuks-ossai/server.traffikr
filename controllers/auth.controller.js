@@ -135,6 +135,8 @@ exports.loginController = (req, res) => {
       process.env.JWT_SECRET
     );
 
+    user.password_hash = undefined;
+    user.salt = undefined;
     res.status(200).json({
       Success: true,
       ErrorMessage: null,
@@ -166,7 +168,8 @@ exports.authMiddleware = (req, res, next) => {
 };
 
 exports.adminMiddleware = (req, res, next) => {
-  const authUserId = req.user._id;
+  console.log(req.user);
+  const authUserId = req.user.data._id;
 
   User.findOne({ _id: authUserId }).exec((err, user) => {
     if (err || !user) {
@@ -185,6 +188,8 @@ exports.adminMiddleware = (req, res, next) => {
       });
     }
 
+    user.password_hash = undefined;
+    user.salt = undefined;
     req.profile = user;
     next();
   });

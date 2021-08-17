@@ -8,7 +8,7 @@ const { profileController } = require("../controllers/user.controller");
 
 const router = express.Router();
 
-router.get("/user/profile", validateToken, authMiddleware, profileController);
+router.get("/profile", validateToken, authMiddleware, profileController);
 router.get("/admin/profile", validateToken, adminMiddleware, profileController);
 
 module.exports = router;
