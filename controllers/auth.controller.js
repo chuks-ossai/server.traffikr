@@ -3,6 +3,9 @@ const jwt = require("jsonwebtoken");
 const expressJwt = require("express-jwt");
 const { registerEmailTemplate } = require("../helpers/email-template");
 const User = require("../models/user");
+const {
+  resetPasswordEmailTemplate,
+} = require("../helpers/reset-password-email-template");
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -144,6 +147,73 @@ exports.loginController = (req, res) => {
     });
   });
 };
+
+exports.forgotPasswordController = (req, res) => {
+  const { emailAddress } = req.body;
+
+  User.findOne({ emailAddress }).exec((err, user) => {
+    if (err || !user) {
+      return res.status(200).json({
+        Success: false,
+        ErrorMassage: "Unrecognized email provided",
+        Results: null,
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        exp: 900,
+        data: {
+          id: user._id,
+          email: user.emailAddress,
+        },
+      },
+      process.env.JWT_RESET_PASSWORD
+    );
+
+    return user.updateOne({ resetPasswordLink: token }, (err, success) => {
+      if (err) {
+        return res.status(200).json({
+          Success: false,
+          ErrorMassage:
+            "Unable to generate link at this time. Please try later",
+          Results: null,
+        });
+      }
+
+      const params = resetPasswordEmailTemplate(
+        user.fullName,
+        user.emailAddress,
+        token
+      );
+
+      const sendEmail = ses.sendEmail(params).promise();
+
+      sendEmail
+        .then((data) => {
+          res.json({
+            Success: true,
+            ErrorMessage: null,
+            Results: [
+              {
+                message: `Email has been sent to ${emailAddress}.`,
+              },
+            ],
+          });
+        })
+        .catch((err) => {
+          res.json({
+            Success: false,
+            ErrorMessage:
+              "Unable to send link to the provided email. Please try again later",
+            Results: null,
+          });
+        });
+    });
+  });
+};
+
+exports.resetPasswordController = (req, res) => {};
 
 exports.validateToken = expressJwt({
   secret: process.env.JWT_SECRET,

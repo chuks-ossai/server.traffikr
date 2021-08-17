@@ -17,3 +17,17 @@ exports.loginValidator = [
     .isLength({ min: 6 })
     .withMessage("Password should be at least 6 characters long"),
 ];
+
+exports.forgotPasswordValidator = [
+  check("emailAddress").isEmail().withMessage("Email entered is not valid"),
+];
+
+exports.resetPasswordValidator = [
+  check("password")
+    .isLength({ min: 6 })
+    .withMessage("Password should be at least 6 characters long"),
+  check("resetPasswordLink")
+    .not()
+    .isEmpty()
+    .withMessage("The link you are using may not be correct"),
+];
