@@ -20,14 +20,13 @@ exports.registerController = (req, res) => {
     if (user) {
       return res.status(200).json({
         Success: false,
-        ErrorMassage: "User with the email already exist",
+        ErrorMessage: "User with the email already exist",
         Results: [],
       });
     }
 
     const token = jwt.sign(
       {
-        exp: Math.floor(Date.now() / 1000) + 60 * 60,
         data: {
           fullName: req.body.fullName,
           emailAddress: req.body.emailAddress,
@@ -35,7 +34,8 @@ exports.registerController = (req, res) => {
           username: req.body.username,
         },
       },
-      process.env.JWT_ACCOUNT_ACTIVATION
+      process.env.JWT_ACCOUNT_ACTIVATION,
+      { expiresIn: "3d" }
     );
 
     const params = registerEmailTemplate(
@@ -89,14 +89,13 @@ exports.activateAccountController = (req, res) => {
       const newUser = new User({ ...data });
       newUser.save((err, savedUser) => {
         if (err) {
-          console.log(err);
           return res.status(200).json({
             Results: null,
             Success: false,
             ErrorMessage: "Error creating user in database. Try again later",
           });
         }
-        console.log(savedUser);
+
         return res.status(200).json({
           Results: [
             { message: "Account activated successfully. You can now login" },
@@ -129,13 +128,13 @@ exports.loginController = (req, res) => {
 
     const token = jwt.sign(
       {
-        exp: Math.floor(Date.now() / 1000) + 60 * 60,
         data: {
           emailAddress: user.emailAddress,
           _id: user._id,
         },
       },
-      process.env.JWT_SECRET
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
     );
 
     user.password_hash = undefined;
@@ -155,27 +154,27 @@ exports.forgotPasswordController = (req, res) => {
     if (err || !user) {
       return res.status(200).json({
         Success: false,
-        ErrorMassage: "Unrecognized email provided",
+        ErrorMessage: "Unrecognized email provided",
         Results: null,
       });
     }
 
     const token = jwt.sign(
       {
-        exp: 900,
         data: {
           id: user._id,
-          email: user.emailAddress,
+          fullName: user.fullName,
         },
       },
-      process.env.JWT_RESET_PASSWORD
+      process.env.JWT_RESET_PASSWORD,
+      { expiresIn: "15m" }
     );
 
     return user.updateOne({ resetPasswordLink: token }, (err, success) => {
       if (err) {
         return res.status(200).json({
           Success: false,
-          ErrorMassage:
+          ErrorMessage:
             "Unable to generate link at this time. Please try later",
           Results: null,
         });
@@ -213,7 +212,58 @@ exports.forgotPasswordController = (req, res) => {
   });
 };
 
-exports.resetPasswordController = (req, res) => {};
+exports.resetPasswordController = (req, res) => {
+  const { resetPasswordLink, password } = req.body;
+
+  jwt.verify(
+    resetPasswordLink,
+    process.env.JWT_RESET_PASSWORD,
+    function (err, decoded) {
+      if (err) {
+        return res.status(200).json({
+          Success: false,
+          ErrorMessage:
+            "The reset link has expired. Please try and register again",
+          Results: null,
+        });
+      }
+
+      User.findOne({ resetPasswordLink }).exec((err, user) => {
+        if (err || !user) {
+          res.status(200).json({
+            Success: false,
+            ErrorMessage:
+              "Unable to send link to the provided email. Please try again later",
+            Results: null,
+          });
+        }
+
+        user.resetPasswordLink = "";
+        user.password = password;
+        user.save((err) => {
+          if (err) {
+            return res.status(200).json({
+              Success: false,
+              ErrorMessage: "Unable to reset password. Please try again later",
+              Results: null,
+            });
+          }
+
+          res.status(200).json({
+            Success: true,
+            ErrorMessage: null,
+            Results: [
+              {
+                message:
+                  "Password reset successfully. Login with your new password",
+              },
+            ],
+          });
+        });
+      });
+    }
+  );
+};
 
 exports.validateToken = expressJwt({
   secret: process.env.JWT_SECRET,
@@ -238,7 +288,6 @@ exports.authMiddleware = (req, res, next) => {
 };
 
 exports.adminMiddleware = (req, res, next) => {
-  console.log(req.user);
   const authUserId = req.user.data._id;
 
   User.findOne({ _id: authUserId }).exec((err, user) => {
