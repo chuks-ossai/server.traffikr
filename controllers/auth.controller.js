@@ -271,7 +271,7 @@ exports.validateToken = expressJwt({
 });
 
 exports.authMiddleware = (req, res, next) => {
-  const authUserId = req.user._id;
+  const authUserId = req?.user?.data?._id;
 
   User.findOne({ _id: authUserId }).exec((err, user) => {
     if (err || !user) {
@@ -288,7 +288,7 @@ exports.authMiddleware = (req, res, next) => {
 };
 
 exports.adminMiddleware = (req, res, next) => {
-  const authUserId = req.user.data._id;
+  const authUserId = req?.user?.data?._id;
 
   User.findOne({ _id: authUserId }).exec((err, user) => {
     if (err || !user) {

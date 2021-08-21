@@ -17,17 +17,19 @@ const categorySchema = new mongoose.Schema(
     },
 
     img: {
-      url: String,
-      key: String,
+      type: {
+        url: String,
+        key: String,
+      },
     },
 
-    content: {
+    description: {
       type: {},
       min: 28,
       max: 2000000,
     },
     postedBy: {
-      type: mongoose.isValidObjectId,
+      type: mongoose.ObjectId,
       ref: "User",
     },
   },
