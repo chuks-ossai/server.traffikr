@@ -10,6 +10,7 @@ const server = express();
 const port = process.env.PORT || 8000;
 
 const routes = require("./routes");
+const appErrorHandler = require("./helpers/error-handler");
 
 if (morgan) {
   server.use(morgan("dev"));
@@ -24,6 +25,8 @@ server.use(
 );
 
 server.use("/api/v1", routes);
+
+appErrorHandler(server);
 
 mongoose
   .connect(process.env.DATABASE_URL, {

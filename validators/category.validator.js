@@ -2,7 +2,7 @@ const { check } = require("express-validator");
 
 exports.categoryValidator = [
   check("name").not().isEmpty().withMessage("Name is required"),
-  check("img").isEmpty().withMessage("Image is required"),
+  check("img").not().isEmpty().withMessage("Image is required"),
   check("description")
     .isLength({ min: 20 })
     .withMessage(
