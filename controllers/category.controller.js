@@ -11,7 +11,21 @@ const s3 = new AWS.S3({
   region: process.env.AWS_REGEION,
 });
 
-exports.getAllCategories = (req, res) => {};
+exports.getAllCategories = (req, res, next) => {
+  Category.find({}).exec((err, data) => {
+    if (err) {
+      const error = new Error("Unable to load data.");
+      error.status = 200;
+      return next(error);
+    }
+
+    res.status(200).json({
+      Success: true,
+      ErrorMessage: null,
+      Results: data,
+    });
+  });
+};
 
 exports.getCategoryBySlug = (req, res) => {};
 
