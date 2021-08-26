@@ -16,7 +16,7 @@ if (morgan) {
   server.use(morgan("dev"));
 }
 server.use(express.urlencoded({ extended: true }));
-server.use(express.json());
+server.use(express.json({ limit: "5mb", type: "application/json" }));
 server.use(
   cors({
     origin: process.env.CLIENT_URL,

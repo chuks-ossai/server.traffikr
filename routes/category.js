@@ -23,8 +23,8 @@ router.get("/getAll", getAllCategories);
 router.get("/get/:slug", getCategoryBySlug);
 router.post(
   "/create",
-  // categoryValidator,
-  // runValidation,
+  categoryValidator,
+  runValidation,
   validateToken,
   authMiddleware,
   adminMiddleware,

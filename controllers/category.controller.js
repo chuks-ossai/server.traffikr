@@ -4,6 +4,7 @@ const formidable = require("formidable");
 const fs = require("fs");
 const uuid = require("uuid");
 const AWS = require("aws-sdk");
+const { errorResponse, successResponse } = require("../helpers/baseResponse");
 
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -14,91 +15,60 @@ const s3 = new AWS.S3({
 exports.getAllCategories = (req, res, next) => {
   Category.find({}).exec((err, data) => {
     if (err) {
-      const error = new Error("Unable to load data.");
-      error.status = 200;
-      return next(error);
+      return next(errorResponse("Unable to load data."));
     }
 
-    res.status(200).json({
-      Success: true,
-      ErrorMessage: null,
-      Results: data,
-    });
+    res.status(200).json(successResponse(undefined, data));
   });
 };
 
 exports.getCategoryBySlug = (req, res) => {};
 
-exports.createCategory = (req, res) => {
-  const form = formidable.IncomingForm();
-  form.parse(req, (err, fields, files) => {
+exports.createCategory = (req, res, next) => {
+  const { name, description, img } = req.body;
+
+  const bs64 = new Buffer.from(
+    img.replace(/^data:image\/\w+;base64,/, ""),
+    "base64"
+  );
+  const imgType = img.split(";")[0].split("/")[1];
+
+  const slug = slugify(name);
+  const newCategory = new Category({
+    name,
+    slug,
+    description,
+    postedBy: req.profile._id,
+  });
+
+  const params = {
+    Bucket: "traffikr-assets",
+    Key: `category/${uuid.v4()}.${imgType}`,
+    Body: bs64,
+    ACL: "public-read",
+    ContentType: `image/${imgType}`,
+  };
+
+  s3.upload(params, function (err, data) {
     if (err) {
-      return res.status(200).json({
-        ErrorMessage: "Unable to upload image. Please try again.",
-        Success: false,
-        Results: null,
-      });
+      return next(errorResponse("Something went wrong while uploading image."));
     }
 
-    const { name, description } = fields;
-    const { img } = files;
-    const slug = slugify(name);
-    const newCategory = new Category({
-      name,
-      slug,
-      description,
-      postedBy: req.profile._id,
-    });
-
-    if (img.size > 2000000) {
-      return res.status(200).json({
-        ErrorMessage: "Image size should not be more than 2MB",
-        Success: false,
-        Results: null,
-      });
-    }
-
-    const params = {
-      Bucket: "traffikr-assets",
-      Key: `category/${uuid.v4()}`,
-      Body: fs.readFileSync(img.path),
-      ACL: "public-read",
-      ContentType: "image/png",
+    newCategory.img = {
+      url: data.Location,
+      key: data.Key,
     };
 
-    s3.upload(params, function (err, data) {
+    newCategory.save((err, success) => {
       if (err) {
-        console.log(err);
-        return res.status(200).json({
-          ErrorMessage: "Something went wrong while uploading image.",
-          Success: false,
-          Results: null,
-        });
+        return next(
+          errorResponse("Something went wrong while try to save record.")
+        );
       }
 
-      newCategory.img = {
-        url: data.Location,
-        key: data.Key,
-      };
-
-      newCategory.save((err, success) => {
-        if (err) {
-          console.log(err);
-          return res.status(200).json({
-            ErrorMessage: "Something went wrong while try to save record.",
-            Success: false,
-            Results: null,
-          });
-        }
-
-        return res.status(200).json({
-          ErrorMessage: null,
-          Success: true,
-          Results: [
-            { message: "Category created successfully.", data: success },
-          ],
-        });
-      });
+      return res
+        .status(200)
+        .json(successResponse("Record created successfully", success));
     });
   });
 };
