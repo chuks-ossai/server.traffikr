@@ -10,12 +10,13 @@ const server = express();
 const port = process.env.PORT || 8000;
 
 const routes = require("./routes");
+const appErrorHandler = require("./helpers/error-handler");
 
 if (morgan) {
   server.use(morgan("dev"));
 }
 server.use(express.urlencoded({ extended: true }));
-server.use(express.json());
+server.use(express.json({ limit: "5mb", type: "application/json" }));
 server.use(
   cors({
     origin: process.env.CLIENT_URL,
@@ -24,6 +25,8 @@ server.use(
 );
 
 server.use("/api/v1", routes);
+
+appErrorHandler(server);
 
 mongoose
   .connect(process.env.DATABASE_URL, {
