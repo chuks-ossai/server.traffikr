@@ -1,7 +1,5 @@
 const Category = require("../models/category");
 const slugify = require("slugify");
-const formidable = require("formidable");
-const fs = require("fs");
 const uuid = require("uuid");
 const AWS = require("aws-sdk");
 const { errorResponse, successResponse } = require("../helpers/baseResponse");

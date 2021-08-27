@@ -16,7 +16,6 @@
     "express": "^4.17.1",
     "express-jwt": "^6.1.0",
     "express-validator": "^6.12.1",
-    "formidable": "^1.2.2",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.13.7",
     "slugify": "^1.6.0",
