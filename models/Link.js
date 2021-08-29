@@ -8,6 +8,13 @@ const linkSchema = new mongoose.Schema(
       required: true,
       max: 256,
     },
+
+    slug: {
+      type: String,
+      lowercase: true,
+      unique: true,
+      index: true,
+    },
     url: {
       type: String,
       trim: true,

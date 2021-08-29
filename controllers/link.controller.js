@@ -1,7 +1,4 @@
 const Link = require("../models/link");
-const slugify = require("slugify");
-const uuid = require("uuid");
-const AWS = require("aws-sdk");
 const { errorResponse, successResponse } = require("../helpers/baseResponse");
 
 exports.getAllLinks = (req, res, next) => {
@@ -26,13 +23,14 @@ exports.createLink = (req, res, next) => {
     medium,
     type,
     categories,
+    slug: url,
     postedBy: req.profile._id,
   });
 
   newLink.save((err, success) => {
     if (err) {
       return next(
-        errorResponse("Something went wrong while try to save record.")
+        errorResponse(`Something went wrong while try to save record. ${err}`)
       );
     }
 
