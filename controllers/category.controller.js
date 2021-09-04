@@ -1,4 +1,5 @@
 const Category = require("../models/category");
+const Link = require("../models/link");
 const slugify = require("slugify");
 const uuid = require("uuid");
 const AWS = require("aws-sdk");
@@ -20,7 +21,34 @@ exports.getAllCategories = (req, res, next) => {
   });
 };
 
-exports.getCategoryBySlug = (req, res) => {};
+exports.getCategoryBySlug = (req, res) => {
+  const { slug, limit, skip } = req.params;
+  let lmt = limit ? parseInt(limit) : 10;
+  let skp = skip ? parseInt(skip) : 0;
+
+  Category.findOne({ slug })
+    .populate("postedBy", "_id name username")
+    .exec((err, category) => {
+      if (err) {
+        return next(errorResponse("Unable to load category."));
+      }
+
+      Link.find({ categories: category })
+        .populate("postedBy", "_id name username")
+        .populate("categories", "name")
+        .sort({ createdAt: -1 })
+        .limit(lmt)
+        .skip(skp)
+        .exec((err, links) => {
+          if (err) {
+            return next(
+              errorResponse("Unable to load links of the category category.")
+            );
+          }
+          res.status(200).json(successResponse(undefined, { category, links }));
+        });
+    });
+};
 
 exports.createCategory = (req, res, next) => {
   const { name, description, img } = req.body;
