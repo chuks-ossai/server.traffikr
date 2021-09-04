@@ -14,12 +14,11 @@ const {
   createLink,
   updateLink,
   deleteLink,
+  updateLinkClicks,
 } = require("../controllers/link.controller");
 const router = express.Router();
 
 router.get("/getAll", getAllLinks);
-router.get("/get/:slug", getLinkBySlug);
-router.get("/get/:categoryId", getLinksByCategory);
 router.post(
   "/create",
   linkValidator,
@@ -28,6 +27,9 @@ router.post(
   authMiddleware,
   createLink
 );
+router.get("/get/:slug", getLinkBySlug);
+router.get("/get/:categoryId", getLinksByCategory);
+router.put("/update-clicks/:linkId", updateLinkClicks);
 router.put(
   "/update/:slug",
   linkValidator,

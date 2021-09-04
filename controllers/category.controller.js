@@ -22,7 +22,8 @@ exports.getAllCategories = (req, res, next) => {
 };
 
 exports.getCategoryBySlug = (req, res) => {
-  const { slug, limit, skip } = req.params;
+  const { slug } = req.params;
+  const { limit, skip } = req.query;
   let lmt = limit ? parseInt(limit) : 10;
   let skp = skip ? parseInt(skip) : 0;
 

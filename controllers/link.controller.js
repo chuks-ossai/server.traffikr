@@ -43,3 +43,23 @@ exports.createLink = (req, res, next) => {
 exports.updateLink = (req, res, next) => {};
 
 exports.deleteLink = (req, res, next) => {};
+
+exports.updateLinkClicks = (req, res, next) => {
+  const { linkId } = req.params;
+
+  Link.findByIdAndUpdate(linkId, { $inc: { clicks: 1 } }, { new: true }).exec(
+    (err, result) => {
+      if (err) {
+        return next(
+          errorResponse(
+            `Something went wrong while try to update clicks. ${err}`
+          )
+        );
+      }
+
+      return res
+        .status(200)
+        .json(successResponse("Click Updated successfully", result));
+    }
+  );
+};
