@@ -12,13 +12,15 @@ const s3 = new AWS.S3({
 });
 
 exports.getAllCategories = (req, res, next) => {
-  Category.find({}).exec((err, data) => {
-    if (err) {
-      return next(errorResponse("Unable to load data."));
-    }
+  Category.find({})
+    .sort({ createdAt: -1 })
+    .exec((err, data) => {
+      if (err) {
+        return next(errorResponse("Unable to load data."));
+      }
 
-    res.status(200).json(successResponse(undefined, data));
-  });
+      res.status(200).json(successResponse(undefined, data));
+    });
 };
 
 exports.getCategoryBySlug = (req, res) => {
