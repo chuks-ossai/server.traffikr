@@ -36,6 +36,17 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "subscriber",
     },
+    interestedTopics: [
+      {
+        type: mongoose.ObjectId,
+        ref: "Category",
+      },
+    ],
+    otherTopics: [
+      {
+        type: String,
+      },
+    ],
     resetPasswordLink: {
       data: String,
       default: "",
