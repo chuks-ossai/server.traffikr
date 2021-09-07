@@ -125,7 +125,7 @@ exports.updateCategory = (req, res, next) => {
 
       const delParams = {
         Bucket: "traffikr-assets",
-        Key: `category/${updatedCategory.img.key}`,
+        Key: `${updatedCategory.img.key}`,
       };
 
       s3.deleteObject(delParams, function (err, deletedImg) {
@@ -187,7 +187,7 @@ exports.deleteCategory = (req, res) => {
     if (deletedCategory.img?.key) {
       const delParams = {
         Bucket: "traffikr-assets",
-        Key: `category/${deletedCategory.img.key}`,
+        Key: `${deletedCategory.img.key}`,
       };
 
       s3.deleteObject(delParams, function (err, deletedImg) {
