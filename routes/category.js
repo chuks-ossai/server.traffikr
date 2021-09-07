@@ -31,7 +31,7 @@ router.post(
   createCategory
 );
 router.put(
-  "/update",
+  "/update/:slug",
   categoryUpdateValidator,
   runValidation,
   validateToken,
