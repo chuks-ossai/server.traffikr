@@ -39,7 +39,7 @@ router.put(
   adminMiddleware,
   updateCategory
 );
-router.post(
+router.delete(
   "/delete/:slug",
   validateToken,
   authMiddleware,

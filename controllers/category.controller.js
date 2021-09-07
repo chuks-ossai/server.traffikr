@@ -184,7 +184,7 @@ exports.deleteCategory = (req, res) => {
       return next("Something when wrong while udateing category");
     }
 
-    if (deletedCatgory.img?.key) {
+    if (deletedCategory.img?.key) {
       const delParams = {
         Bucket: "traffikr-assets",
         Key: `category/${deletedCategory.img.key}`,
