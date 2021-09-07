@@ -176,4 +176,32 @@ exports.updateCategory = (req, res, next) => {
   });
 };
 
-exports.deleteCategory = (req, res) => {};
+exports.deleteCategory = (req, res) => {
+  const { slug } = req.params;
+
+  Category.findOneAndDelete({ slug }).exec((err, deletedCategory) => {
+    if (err && !updatedCategory) {
+      return next("Something when wrong while udateing category");
+    }
+
+    if (deletedCatgory.img?.key) {
+      const delParams = {
+        Bucket: "traffikr-assets",
+        Key: `category/${deletedCategory.img.key}`,
+      };
+
+      s3.deleteObject(delParams, function (err, deletedImg) {
+        if (err) {
+          return next(
+            "Unable to delete image attached to this topic. Please contact the Admin"
+          );
+        }
+        return res
+          .status(200)
+          .json(
+            successResponse("Record deleted successfully", deletedCategory)
+          );
+      });
+    }
+  });
+};
