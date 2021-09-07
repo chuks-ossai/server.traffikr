@@ -102,6 +102,78 @@ exports.createCategory = (req, res, next) => {
   });
 };
 
-exports.updateCategory = (req, res) => {};
+exports.updateCategory = (req, res, next) => {
+  const { slug } = req.params;
+  const { name, img, description } = req.body;
+
+  Category.findOneAndUpdate(
+    { slug },
+    { name, description },
+    { new: true }
+  ).exec((err, updatedCategory) => {
+    if (err && !updatedCategory) {
+      return next("Something when wrong while udateing category");
+    }
+
+    if (img) {
+      const bs64 = new Buffer.from(
+        img.replace(/^data:image\/\w+;base64,/, ""),
+        "base64"
+      );
+
+      const imgType = img.split(";")[0].split("/")[1];
+
+      const delParams = {
+        Bucket: "traffikr-assets",
+        Key: `category/${updatedCategory.img.key}`,
+      };
+
+      s3.deleteObject(delParams, function (err, deletedImg) {
+        if (err) {
+          return next("Unable to delete image during update");
+        }
+
+        const params = {
+          Bucket: "traffikr-assets",
+          Key: `category/${uuid.v4()}.${imgType}`,
+          Body: bs64,
+          ACL: "public-read",
+          ContentType: `image/${imgType}`,
+        };
+
+        s3.upload(params, function (err, uploadedImg) {
+          if (err) {
+            return next(
+              errorResponse("Something went wrong while uploading image.")
+            );
+          }
+
+          updatedCategory.img = {
+            url: uploadedImg.Location,
+            key: uploadedImg.Key,
+          };
+
+          updatedCategory.save((err, savedCategory) => {
+            if (err) {
+              return next(
+                errorResponse("Something went wrong while try to save record.")
+              );
+            }
+
+            return res
+              .status(200)
+              .json(
+                successResponse("Record updated successfully", savedCategory)
+              );
+          });
+        });
+      });
+    } else {
+      return res
+        .status(200)
+        .json(successResponse("Record updated successfully", updatedCategory));
+    }
+  });
+};
 
 exports.deleteCategory = (req, res) => {};
