@@ -94,9 +94,8 @@ exports.activateAccountController = (req, res) => {
       }
 
       const { data } = decoded;
-      console.table(data);
 
-      const newUser = new User({ ...data });
+      const newUser = new User(data);
       newUser.save((err, savedUser) => {
         if (err) {
           return res.status(200).json({
