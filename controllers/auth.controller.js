@@ -2,6 +2,7 @@ const AWS = require("aws-sdk");
 const jwt = require("jsonwebtoken");
 const expressJwt = require("express-jwt");
 const { registerEmailTemplate } = require("../helpers/email-template");
+const { errorResponse } = require("../helpers/baseResponse");
 const User = require("../models/user");
 const {
   resetPasswordEmailTemplate,
@@ -15,8 +16,14 @@ AWS.config.update({
 
 const ses = new AWS.SES({ apiVersion: "2021-08-12" });
 
-exports.registerController = (req, res) => {
+exports.registerController = (req, res, next) => {
   User.findOne({ emailAddress: req.body.emailAddress }).exec((err, user) => {
+    if (err) {
+      return next(
+        errorResponse("Something went wrong while trying to register user")
+      );
+    }
+
     if (user) {
       return res.status(200).json({
         Success: false,
@@ -32,6 +39,8 @@ exports.registerController = (req, res) => {
           emailAddress: req.body.emailAddress,
           password: req.body.password,
           username: req.body.username,
+          interestedTopics: req.body.interestedTopics,
+          otherTopics: req.body.otherTopics,
         },
       },
       process.env.JWT_ACCOUNT_ACTIVATION,
@@ -86,7 +95,7 @@ exports.activateAccountController = (req, res) => {
 
       const { data } = decoded;
 
-      const newUser = new User({ ...data });
+      const newUser = new User(data);
       newUser.save((err, savedUser) => {
         if (err) {
           return res.status(200).json({

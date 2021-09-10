@@ -1,7 +1,4 @@
 const Link = require("../models/link");
-const slugify = require("slugify");
-const uuid = require("uuid");
-const AWS = require("aws-sdk");
 const { errorResponse, successResponse } = require("../helpers/baseResponse");
 
 exports.getAllLinks = (req, res, next) => {
@@ -26,13 +23,14 @@ exports.createLink = (req, res, next) => {
     medium,
     type,
     categories,
+    slug: url,
     postedBy: req.profile._id,
   });
 
   newLink.save((err, success) => {
     if (err) {
       return next(
-        errorResponse("Something went wrong while try to save record.")
+        errorResponse(`Something went wrong while try to save record. ${err}`)
       );
     }
 
@@ -45,3 +43,23 @@ exports.createLink = (req, res, next) => {
 exports.updateLink = (req, res, next) => {};
 
 exports.deleteLink = (req, res, next) => {};
+
+exports.updateLinkClicks = (req, res, next) => {
+  const { linkId } = req.params;
+
+  Link.findByIdAndUpdate(linkId, { $inc: { clicks: 1 } }, { new: true }).exec(
+    (err, result) => {
+      if (err) {
+        return next(
+          errorResponse(
+            `Something went wrong while try to update clicks. ${err}`
+          )
+        );
+      }
+
+      return res
+        .status(200)
+        .json(successResponse("Click Updated successfully", result));
+    }
+  );
+};

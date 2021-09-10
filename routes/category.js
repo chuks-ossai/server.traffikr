@@ -31,7 +31,7 @@ router.post(
   createCategory
 );
 router.put(
-  "/update",
+  "/update/:slug",
   categoryUpdateValidator,
   runValidation,
   validateToken,
@@ -39,7 +39,7 @@ router.put(
   adminMiddleware,
   updateCategory
 );
-router.post(
+router.delete(
   "/delete/:slug",
   validateToken,
   authMiddleware,
