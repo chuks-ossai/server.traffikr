@@ -40,7 +40,7 @@ router.put(
   updateLink
 );
 router.post(
-  "/delete/:slug",
+  "/delete/:id",
   validateToken,
   authMiddleware,
   adminMiddleware,
