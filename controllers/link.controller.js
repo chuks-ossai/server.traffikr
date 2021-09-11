@@ -40,9 +40,39 @@ exports.createLink = (req, res, next) => {
   });
 };
 
-exports.updateLink = (req, res, next) => {};
+exports.updateLink = (req, res, next) => {
+  const { id } = req.params;
 
-exports.deleteLink = (req, res, next) => {};
+  Link.findOneAndUpdate({ _id: id }, req.body, { new: true }).exec(
+    (err, updatedLink) => {
+      if (err) {
+        return next(
+          errorResponse("Something went wrong while trying to delete record")
+        );
+      }
+
+      return res
+        .status(200)
+        .json(successResponse("Record updated successfully", updatedLink));
+    }
+  );
+};
+
+exports.deleteLink = (req, res, next) => {
+  const { id } = req.params;
+
+  Link.findOneAndRemove({ _id: id }).exec((err, data) => {
+    if (err) {
+      return next(
+        errorResponse("Something went wrong while trying to delete record")
+      );
+    }
+
+    return res
+      .status(200)
+      .json(successResponse("Record created successfully", data));
+  });
+};
 
 exports.updateLinkClicks = (req, res, next) => {
   const { linkId } = req.params;
