@@ -12,7 +12,30 @@ exports.getAllLinks = (req, res, next) => {
 };
 
 exports.getLinkBySlug = (req, res, next) => {};
+
 exports.getLinksByCategory = (req, res, next) => {};
+
+exports.getUserLinks = (req, res, next) => {
+  Link.find({ postedBy: req.profile })
+    .populate("categories", "name slug")
+    .populate("postedBy", "name")
+    .sort({ createdAt: -1 })
+    .exec((err, links) => {
+      console.log(links);
+      if (err && !links) {
+        console.log(err);
+        return next(
+          errorResponse("Something went wrong while trying to get your links.")
+        );
+      }
+      // return successResponse("", { profile: req.profile, links });
+      return res.status(200).json({
+        Success: true,
+        ErrorMessage: null,
+        Results: links,
+      });
+    });
+};
 
 exports.createLink = (req, res, next) => {
   const { title, url, medium, type, categories } = req.body;

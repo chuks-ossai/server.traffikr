@@ -15,10 +15,12 @@ const {
   updateLink,
   deleteLink,
   updateLinkClicks,
+  getUserLinks,
 } = require("../controllers/link.controller");
 const router = express.Router();
 
 router.get("/getAll", getAllLinks);
+router.get("/userlinks", validateToken, authMiddleware, getUserLinks);
 router.post(
   "/create",
   linkValidator,
@@ -31,14 +33,14 @@ router.get("/get/:slug", getLinkBySlug);
 router.get("/get/:categoryId", getLinksByCategory);
 router.put("/update-clicks/:linkId", updateLinkClicks);
 router.put(
-  "/update/:slug",
+  "/update/:id",
   linkValidator,
   runValidation,
   validateToken,
   authMiddleware,
-  adminMiddleware,
   updateLink
 );
+
 router.post(
   "/delete/:id",
   validateToken,
