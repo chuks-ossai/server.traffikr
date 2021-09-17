@@ -16,11 +16,19 @@ const {
   deleteLink,
   updateLinkClicks,
   getUserLinks,
+  getAdminLinks,
 } = require("../controllers/link.controller");
 const router = express.Router();
 
 router.get("/getAll", getAllLinks);
 router.get("/userlinks", validateToken, authMiddleware, getUserLinks);
+router.get(
+  "/adminlinks",
+  validateToken,
+  authMiddleware,
+  adminMiddleware,
+  getAdminLinks
+);
 router.post(
   "/create",
   linkValidator,
@@ -41,11 +49,11 @@ router.put(
   updateLink
 );
 
-router.post(
+router.delete(
   "/delete/:id",
   validateToken,
   authMiddleware,
-  adminMiddleware,
+  // adminMiddleware,
   deleteLink
 );
 
