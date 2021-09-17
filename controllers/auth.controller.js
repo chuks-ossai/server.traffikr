@@ -7,6 +7,7 @@ const User = require("../models/user");
 const {
   resetPasswordEmailTemplate,
 } = require("../helpers/reset-password-email-template");
+const link = require("../models/link");
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -320,5 +321,26 @@ exports.adminMiddleware = (req, res, next) => {
     user.salt = undefined;
     req.profile = user;
     next();
+  });
+};
+
+exports.authorizedUser = (req, res, next) => {
+  const { id } = req.params;
+
+  link.findById(id).exec((err, data) => {
+    if (err || !data) {
+      return next(errorResponse("Unable to retrieve link from database"));
+    }
+
+    if (data.postedBy.equals(req.profile._id)) {
+      next();
+    } else {
+      return res.status(401).json({
+        Success: false,
+        ErrorMessage:
+          "You are not authorized to perform such action on a link you didn't create.",
+        Results: null,
+      });
+    }
   });
 };

@@ -6,6 +6,7 @@ const {
   authMiddleware,
   adminMiddleware,
   validateToken,
+  authorizedUser,
 } = require("../controllers/auth.controller");
 const {
   getAllLinks,
@@ -21,9 +22,9 @@ const {
 const router = express.Router();
 
 router.get("/getAll", getAllLinks);
-router.get("/userlinks", validateToken, authMiddleware, getUserLinks);
+router.get("/my/getAll", validateToken, authMiddleware, getUserLinks);
 router.get(
-  "/adminlinks",
+  "/admin/getAll",
   validateToken,
   authMiddleware,
   adminMiddleware,
@@ -41,19 +42,38 @@ router.get("/get/:slug", getLinkBySlug);
 router.get("/get/:categoryId", getLinksByCategory);
 router.put("/update-clicks/:linkId", updateLinkClicks);
 router.put(
-  "/update/:id",
+  "/my/update/:id",
   linkValidator,
   runValidation,
   validateToken,
   authMiddleware,
+  authorizedUser,
+  updateLink
+);
+
+router.put(
+  "/admin/update/:id",
+  linkValidator,
+  runValidation,
+  validateToken,
+  authMiddleware,
+  adminMiddleware,
   updateLink
 );
 
 router.delete(
-  "/delete/:id",
+  "/my/delete/:id",
   validateToken,
   authMiddleware,
-  // adminMiddleware,
+  authorizedUser,
+  deleteLink
+);
+
+router.delete(
+  "/admin/delete/:id",
+  validateToken,
+  authMiddleware,
+  adminMiddleware,
   deleteLink
 );
 

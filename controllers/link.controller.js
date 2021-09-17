@@ -108,49 +108,18 @@ exports.updateLink = (req, res, next) => {
 exports.deleteLink = (req, res, next) => {
   const { id } = req.params;
 
-  if (req.profile.role === "admin") {
-    Link.findOneAndRemove({ _id: id }).exec((err, data) => {
-      if (err) {
-        console.log(err);
-        return next(
-          errorResponse("Something went wrong while trying to delete record")
-        );
-      }
+  Link.findOneAndRemove({ _id: id }).exec((err, data) => {
+    if (err) {
+      console.log(err);
+      return next(
+        errorResponse("Something went wrong while trying to delete record")
+      );
+    }
 
-      return res
-        .status(200)
-        .json(successResponse("Record created successfully", data));
-    });
-  } else {
-    Link.findById(id).exec((err, data) => {
-      if (err || !data) {
-        return next(
-          errorResponse("Something went wrong. Unable to delete link")
-        );
-      }
-
-      if (data.postedBy.equals(req.profile._id)) {
-        Link.findOneAndRemove({ _id: data._id }).exec((err, deleted) => {
-          if (err) {
-            console.log(err);
-            return next(
-              errorResponse("Something went wrong. Unable to delete link")
-            );
-          }
-
-          return res
-            .status(200)
-            .json(successResponse("Record created successfully", deleted));
-        });
-      } else {
-        return next(
-          errorResponse(
-            "Sorry you cannot delete a link created by another user"
-          )
-        );
-      }
-    });
-  }
+    return res
+      .status(200)
+      .json(successResponse("Record created successfully", data));
+  });
 };
 
 exports.updateLinkClicks = (req, res, next) => {
