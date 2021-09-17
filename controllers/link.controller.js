@@ -1,5 +1,17 @@
+const AWS = require("aws-sdk");
 const Link = require("../models/link");
+const Category = require("../models/category");
+const User = require("../models/user");
 const { errorResponse, successResponse } = require("../helpers/baseResponse");
+const { linkPublishedParams } = require("../helpers/email-template");
+
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET,
+  region: process.env.AWS_REGION,
+});
+
+const ses = new AWS.SES({ apiVersion: "2021-08-12" });
 
 exports.getAllLinks = (req, res, next) => {
   Link.find({}).exec((err, data) => {
@@ -81,9 +93,38 @@ exports.createLink = (req, res, next) => {
       );
     }
 
-    return res
+    res
       .status(200)
       .json(successResponse("Record created successfully", success));
+
+    User.find({ interestedTopics: { $in: categories } }).exec((err, users) => {
+      if (err) {
+        console.log("Error finding users to send email to", err);
+      }
+
+      Category.find({ _id: { $in: categories } }).exec((err, cats) => {
+        success.categories = cats;
+
+        users.forEach((user) => {
+          const param = linkPublishedParams(
+            user.emailAddress,
+            user.fullName,
+            success
+          );
+          ses
+            .sendEmail(param)
+            .promise()
+            .then((sent) => {
+              console.log("email sent successfully", sent);
+              return;
+            })
+            .catch((failed) => {
+              console.log("unable to send email", failed);
+              return;
+            });
+        });
+      });
+    });
   });
 };
 
