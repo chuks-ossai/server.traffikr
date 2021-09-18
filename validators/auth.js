@@ -31,3 +31,7 @@ exports.resetPasswordValidator = [
     .isEmpty()
     .withMessage("The link you are using may not be correct"),
 ];
+
+exports.registerValidator = [
+  check("fullName").not().isEmpty().withMessage("Full Name is required"),
+];
