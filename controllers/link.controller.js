@@ -1,7 +1,7 @@
 const AWS = require("aws-sdk");
-const Link = require("../models/link");
-const Category = require("../models/category");
-const User = require("../models/user");
+const Link = require("../models/Link");
+const Category = require("../models/Category");
+const User = require("../models/User");
 const { errorResponse, successResponse } = require("../helpers/baseResponse");
 const { linkPublishedParams } = require("../helpers/email-template");
 

@@ -1,5 +1,5 @@
-const Category = require("../models/category");
-const Link = require("../models/link");
+const Category = require("../models/Category");
+const Link = require("../models/Link");
 const slugify = require("slugify");
 const uuid = require("uuid");
 const AWS = require("aws-sdk");

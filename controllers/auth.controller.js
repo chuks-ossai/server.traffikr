@@ -3,11 +3,11 @@ const jwt = require("jsonwebtoken");
 const expressJwt = require("express-jwt");
 const { registerEmailTemplate } = require("../helpers/email-template");
 const { errorResponse } = require("../helpers/baseResponse");
-const User = require("../models/user");
+const User = require("../models/User");
 const {
   resetPasswordEmailTemplate,
 } = require("../helpers/reset-password-email-template");
-const link = require("../models/link");
+const Link = require("../models/Link");
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -327,7 +327,7 @@ exports.adminMiddleware = (req, res, next) => {
 exports.authorizedUser = (req, res, next) => {
   const { id } = req.params;
 
-  link.findById(id).exec((err, data) => {
+  Link.findById(id).exec((err, data) => {
     if (err || !data) {
       return next(errorResponse("Unable to retrieve link from database"));
     }

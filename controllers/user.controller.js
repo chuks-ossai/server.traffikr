@@ -1,6 +1,6 @@
 const { errorResponse, successResponse } = require("../helpers/baseResponse");
-const Link = require("../models/link");
-const User = require("../models/user");
+const Link = require("../models/Link");
+const User = require("../models/User");
 
 exports.profileController = (req, res, next) => {
   Link.find({ postedBy: req.profile })
