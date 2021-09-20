@@ -30,7 +30,6 @@ exports.updateProfileController = (req, res, next) => {
   const { fullName, interestedTopics, password, userName, otherTopics } =
     req.body;
 
-  console.log("interested topics ", interestedTopics);
   if (password) {
     if (password.length < 6) {
       return next(
@@ -49,7 +48,6 @@ exports.updateProfileController = (req, res, next) => {
         );
       }
 
-      console.log(updatedProfile);
       updatedProfile.hashed_password = undefined;
       updatedProfile.salt = undefined;
 
@@ -69,7 +67,6 @@ exports.updateProfileController = (req, res, next) => {
         );
       }
 
-      console.log(updatedProfile);
       updatedProfile.password_hash = undefined;
       updatedProfile.salt = undefined;
 

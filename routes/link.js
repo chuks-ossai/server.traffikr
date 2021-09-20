@@ -18,6 +18,8 @@ const {
   updateLinkClicks,
   getUserLinks,
   getAdminLinks,
+  getTrending,
+  getTrendingByCategory,
 } = require("../controllers/link.controller");
 const router = express.Router();
 
@@ -40,6 +42,8 @@ router.post(
 );
 router.get("/get/:slug", getLinkBySlug);
 router.get("/get/:categoryId", getLinksByCategory);
+router.get("/trending/getAll", getTrending);
+router.get("/trending/get/:categorySlug", getTrendingByCategory);
 router.put("/update-clicks/:linkId", updateLinkClicks);
 router.put(
   "/my/update/:id",

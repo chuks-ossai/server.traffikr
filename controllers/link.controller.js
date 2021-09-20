@@ -151,7 +151,6 @@ exports.deleteLink = (req, res, next) => {
 
   Link.findOneAndRemove({ _id: id }).exec((err, data) => {
     if (err) {
-      console.log(err);
       return next(
         errorResponse("Something went wrong while trying to delete record")
       );
@@ -181,4 +180,48 @@ exports.updateLinkClicks = (req, res, next) => {
         .json(successResponse("Click Updated successfully", result));
     }
   );
+};
+
+exports.getTrending = (req, res, next) => {
+  Link.find()
+    .populate("categories", "slug name")
+    .populate("postedBy", "name")
+    .limit(3)
+    .sort({ clicks: -1 })
+    .exec((err, links) => {
+      if (err) {
+        return next(
+          errorResponse("Something went wrong while trying get links")
+        );
+      }
+
+      return res.status(200).json(successResponse(null, links));
+    });
+};
+
+exports.getTrendingByCategory = (req, res, next) => {
+  const { categorySlug } = req.params;
+
+  Category.findOne({ slug: categorySlug }).exec((err, category) => {
+    if (err) {
+      return next(
+        errorResponse("Something went wrong while trying get category")
+      );
+    }
+
+    Link.find({ categories: category })
+      .populate("categories", "slug name")
+      .populate("postedBy", "name")
+      .limit(5)
+      .sort({ clicks: -1 })
+      .exec((err, links) => {
+        if (err) {
+          return next(
+            errorResponse("Something went wrong while trying get links")
+          );
+        }
+
+        return res.status(200).json(successResponse(null, links));
+      });
+  });
 };
